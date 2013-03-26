@@ -51,7 +51,8 @@ public class TraceRandomSentenceSpout extends BaseRichSpout {
         if (sentence.toLowerCase().contains(cow.toLowerCase())){
             trace = Boolean.TRUE;
             traceId += 1;
-            _traceInfo.put("traceId", traceId);
+            String traceID = Integer.toHexString(traceId);
+            _traceInfo.put("traceId", traceID);
             _traceInfo.put("traceTrail", _componentId);
         }
         String snow = "snow";
