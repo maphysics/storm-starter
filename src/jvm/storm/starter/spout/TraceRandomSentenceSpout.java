@@ -47,13 +47,12 @@ public class TraceRandomSentenceSpout extends BaseRichSpout {
                 "i am at two with nature"};
         String sentence = sentences[_rand.nextInt(sentences.length)];
         String cow = "cow";
-        Boolean trace = Boolean.FALSE;
+        HashMap trace = new HashMap();
         if (sentence.toLowerCase().contains(cow.toLowerCase())){
-            trace = Boolean.TRUE;
             traceId += 1;
             String traceID = Integer.toHexString(traceId);
-            _traceInfo.put("traceId", traceID);
-            _traceInfo.put("traceTrail", _componentId);
+            trace.put("traceID", traceID);
+            trace.put("traceTrail", _componentId);
         }
         String snow = "snow";
         Boolean fail = Boolean.FALSE;
@@ -67,10 +66,10 @@ public class TraceRandomSentenceSpout extends BaseRichSpout {
             die = Boolean.TRUE;
         }
         if (initTraceCount == traceId){
-            _collector.emit(new Values(die, fail, failReason, trace, new HashMap(), sentence));
+            _collector.emit(new Values(die, fail, failReason, trace, sentence));
         }
         else{
-            _collector.emit( new Values(die, fail, failReason, trace, _traceInfo, sentence));
+            _collector.emit( new Values(die, fail, failReason, new HashMap(), sentence));
         }
     }
 
@@ -84,7 +83,7 @@ public class TraceRandomSentenceSpout extends BaseRichSpout {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("_die","_fail","failReason","_trace","traceInfo","sentence"));
+        declarer.declare(new Fields("_die","_fail","failReason","_trace","sentence"));
     }
 
 }
