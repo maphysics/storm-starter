@@ -43,17 +43,16 @@ public class ReverseStringTopology {
 
         public void execute(Tuple tuple) {
             String sentence = tuple.getStringByField("backwardsSentence");
-            Boolean trace = tuple.getBooleanByField("_trace");
-            HashMap traceInfo = (HashMap) tuple.getValueByField("traceInfo");
+            HashMap trace = (HashMap) tuple.getValueByField("_trace");
             String[] words = sentence.split(" ");
             for (int wordIn=0;wordIn < words.length -1;wordIn++){
-                _collector.emit(new Values(trace, traceInfo, words[wordIn]));
+                _collector.emit(new Values(trace, words[wordIn]));
                 _collector.ack(tuple);
             }
         }
         @Override
         public void declareOutputFields(OutputFieldsDeclarer declarer) {
-            declarer.declare(new Fields("_trace","traceInfo", "word"));
+            declarer.declare(new Fields("_trace", "word"));
         }
 
         @Override
@@ -73,19 +72,18 @@ public class ReverseStringTopology {
         @Override
         public void execute(Tuple tuple) {
             String word = tuple.getStringByField("word");
-            Boolean trace = tuple.getBooleanByField("_trace");
-            HashMap traceInfo = (HashMap) tuple.getValueByField("traceInfo");
+            HashMap trace = (HashMap) tuple.getValueByField("_trace");
             Integer count = counts.get(word);
             if(count==null) count = 0;
             count++;
             counts.put(word, count);
-            _collector.emit(new Values(trace, traceInfo, word, count));
+            _collector.emit(new Values(trace, word, count));
             _collector.ack(tuple);
         }
 
         @Override
         public void declareOutputFields(OutputFieldsDeclarer declarer) {
-            declarer.declare(new Fields("_trace","traceInfo", "word", "count"));
+            declarer.declare(new Fields("_trace", "word", "count"));
         }
     }
 
@@ -106,14 +104,14 @@ public class ReverseStringTopology {
                 throw new FailedException(sentence.concat(" is marked FAILED!"));
             }
             else{
-                _collector.emit(new Values(tuple.getBooleanByField("_fail"), failReason, tuple.getBooleanByField("_trace"),
-                        tuple.getValueByField("traceInfo"), sentence));
+                _collector.emit(new Values(tuple.getBooleanByField("_fail"), failReason,
+                        tuple.getValueByField("_trace"), sentence));
                 _collector.ack(tuple);
             }
         }
 
         public void declareOutputFields(OutputFieldsDeclarer declarer) {
-            declarer.declare(new Fields("_fail", "failReason","_trace","traceInfo", "sentence"));
+            declarer.declare(new Fields("_fail", "failReason","_trace", "sentence"));
         }
     }
 
@@ -135,13 +133,13 @@ public class ReverseStringTopology {
             }
             else{
                 _collector.emit(tuple, new Values(tuple.getBooleanByField("_fail"), tuple.getStringByField("failReason"),
-                        tuple.getBooleanByField("_trace"), tuple.getValueByField("traceInfo"),sentence));
+                        tuple.getValueByField("_trace"), sentence));
                 _collector.ack(tuple);
             }
         }
 
         public void declareOutputFields(OutputFieldsDeclarer declarer) {
-            declarer.declare(new Fields("_fail", "failReason", "_trace","traceInfo", "sentence"));
+            declarer.declare(new Fields("_fail", "failReason", "_trace", "sentence"));
         }
     }
 
@@ -167,15 +165,15 @@ public class ReverseStringTopology {
         public void execute(Tuple tuple) {
             Date date = new Date();
             String sentence = tuple.getStringByField("sentence");
-            Boolean trace = tuple.getBooleanByField("_trace");
+            HashMap trace = (HashMap) tuple.getValueByField("_trace");
             String backwardsSentence = "";
             backwardsSentence = ReverseString(sentence);
-            _collector.emit(tuple, new Values(trace, tuple.getValueByField("traceInfo"), backwardsSentence));
+            _collector.emit(tuple, new Values(trace, backwardsSentence));
             _collector.ack(tuple);
         }
 
         public void declareOutputFields(OutputFieldsDeclarer declarer) {
-            declarer.declare(new Fields("_trace","traceInfo", "backwardsSentence"));
+            declarer.declare(new Fields("_trace", "backwardsSentence"));
         }
     }
 
