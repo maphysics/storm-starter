@@ -180,10 +180,10 @@ public class ReverseStringTopology {
     public static void main(String[] args) throws Exception {
         TopologyBuilder builder = new TopologyBuilder();
 
-        builder.setSpout("spout", new TraceRandomSentenceSpout(), 5);
+        builder.setSpout("my_spout", new TraceRandomSentenceSpout(), 5);
 
         builder.setBolt("my_die", new DieBolt(), 3)
-                .fieldsGrouping("spout", new Fields("_die"));
+                .fieldsGrouping("my_spout", new Fields("_die"));
 
         builder.setBolt("my_fail", new FailBolt(), 3)
                 .fieldsGrouping("my_die", new Fields("_fail"));
@@ -202,8 +202,6 @@ public class ReverseStringTopology {
         Config conf = new Config();
         conf.setDebug(false);
         conf.put(Config.TOPOLOGY_AUTO_TASK_HOOKS,hooks);
-        conf.registerMetricsConsumer(storm.starter.SourceMetric.class, "source", 3);
-
 
         if(args!=null && args.length > 0) {
             conf.setNumWorkers(3);
