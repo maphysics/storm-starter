@@ -113,9 +113,11 @@ public class TracerHook extends BaseTaskHook {
         //May duplicate trail names, not sure
         //__system streams don't have the same information because they don't have tuples for instance
         //so those records need to be skipped or handle differently
-        if (! allInfo.get("componentID").equals("my_spout") && allInfo.get("_trace") != null){
+        if ((!allInfo.get("componentID").equals("my_spout")) && (allInfo.get("trace") != null)){
             Fields outputFields = (Fields) allInfo.get("outputFields");
             Integer traceIndex = outputFields.fieldIndex("_trace");
+            updateTraceTrail((String) allInfo.get("componentID"));
+
             info.values.add(traceIndex, allInfo.get("newTrace"));
 
             Vector elements = new Vector();
@@ -127,7 +129,7 @@ public class TracerHook extends BaseTaskHook {
     @Override
     public void boltAck(BoltAckInfo info) {
 //        allInfo.remove("newTrace");
-        if (! allInfo.get("componentID").equals("my_spout") && allInfo.get("_trace") != null){
+        if ((!allInfo.get("componentID").equals("my_spout")) && (allInfo.get("trace") != null)){
             getBoltAckInfo(info);
 
             Vector elements = new Vector();
@@ -139,7 +141,7 @@ public class TracerHook extends BaseTaskHook {
 
     @Override
     public void boltFail(BoltFailInfo info) {
-        if (! allInfo.get("componentID").equals("my_spout") && allInfo.get("_trace") != null){
+        if ((!allInfo.get("componentID").equals("my_spout")) && (allInfo.get("trace") != null)){
             getBoltFailInfo(info);
 
             Vector elements = new Vector();
@@ -150,9 +152,9 @@ public class TracerHook extends BaseTaskHook {
     }
 
     public void boltExecute(BoltExecuteInfo info){
-            if (info.tuple.getValueByField("_trace") != null && !allInfo.get("componentID").equals("my_spout")){
+            if ((info.tuple.getValueByField("_trace") != null) && (!allInfo.get("componentID").equals("my_spout"))){
                 getBoltExecuteInfo(info);
-//                updateTraceTrail((String) allInfo.get("componentID"));
+
 
                 Vector elements = new Vector();
                 elements.add("executeLatencyMs");
