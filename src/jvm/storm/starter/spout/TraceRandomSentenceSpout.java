@@ -53,7 +53,7 @@ public class TraceRandomSentenceSpout extends BaseRichSpout {
             traceId += 1;
             String traceID = Integer.toHexString(traceId);
             trace.put("traceID", traceID);
-            trace.put("traceMessage", "testing_trace");
+            trace.put("traceMessage", _componentId);
         }
         String snow = "snow";
         Boolean fail = Boolean.FALSE;
