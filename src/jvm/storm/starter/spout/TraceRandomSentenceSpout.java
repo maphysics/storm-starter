@@ -57,20 +57,23 @@ public class TraceRandomSentenceSpout extends BaseRichSpout {
         String snow = "snow";
         Boolean fail = Boolean.FALSE;
         if (sentence.toLowerCase().contains(snow.toLowerCase())){
-            fail = Boolean.TRUE;
+            fail = Boolean.FALSE;
             failReason = snow;
         }
         String nature = "frog";
         Boolean die = Boolean.FALSE;
         if (sentence.toLowerCase().contains(nature.toLowerCase())){
-            die = Boolean.TRUE;
+            die = Boolean.FALSE;
+        }
+        if (failReason.equals("")){
+            failReason = null;
         }
         if (initTraceCount == traceId){
-            _collector.emit(new Values(die, fail, failReason, trace, sentence));
+            trace = null;
         }
-        else{
-            _collector.emit( new Values(die, fail, failReason, new HashMap(), sentence));
-        }
+
+        _collector.emit( new Values(die, fail, failReason, trace, sentence));
+
     }
 
     @Override

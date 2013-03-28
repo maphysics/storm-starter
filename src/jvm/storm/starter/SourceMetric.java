@@ -1,11 +1,20 @@
 package storm.starter;
 
-/**
- * Created with IntelliJ IDEA.
- * User: maphysics
- * Date: 3/28/13
- * Time: 12:06 PM
- * To change this template use File | Settings | File Templates.
- */
-public class SourceMetric {
+import backtype.storm.metric.api.IMetric;
+
+public class SourceMetric implements IMetric, java.io.Serializable {
+    String _value = "";
+
+    public SourceMetric() {
+    }
+
+    public void getSource(){
+        _value = "The source here";
+    }
+
+    public Object getValueAndReset() {
+        String ret = _value;
+        _value = "";
+        return ret;
+    }
 }

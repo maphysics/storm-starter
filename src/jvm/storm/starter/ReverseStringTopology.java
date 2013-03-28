@@ -200,8 +200,10 @@ public class ReverseStringTopology {
 //        hooks.add("storm.starter.FailerHook");
 //        hooks.add("storm.starter.DierHook");
         Config conf = new Config();
-        conf.setDebug(true);
+        conf.setDebug(false);
         conf.put(Config.TOPOLOGY_AUTO_TASK_HOOKS,hooks);
+        conf.registerMetricsConsumer(storm.starter.SourceMetric.class, "source", 3);
+
 
         if(args!=null && args.length > 0) {
             conf.setNumWorkers(3);
