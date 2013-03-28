@@ -8,6 +8,7 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
 
+import java.sql.Array;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -52,7 +53,7 @@ public class TraceRandomSentenceSpout extends BaseRichSpout {
             traceId += 1;
             String traceID = Integer.toHexString(traceId);
             trace.put("traceID", traceID);
-            trace.put("traceTrail", _componentId);
+            trace.put("traceMessage", "testing_trace");
         }
         String snow = "snow";
         Boolean fail = Boolean.FALSE;
