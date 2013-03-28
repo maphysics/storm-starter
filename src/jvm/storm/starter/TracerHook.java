@@ -1,9 +1,7 @@
 package storm.starter;
 
 import backtype.storm.hooks.BaseTaskHook;
-import backtype.storm.hooks.info.BoltExecuteInfo;
-import backtype.storm.hooks.info.EmitInfo;
-import backtype.storm.hooks.info.SpoutAckInfo;
+import backtype.storm.hooks.info.*;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.generated.GlobalStreamId;
 import backtype.storm.generated.Grouping;
@@ -32,12 +30,22 @@ public class TracerHook extends BaseTaskHook {
     Logger LOG = LoggerFactory.getLogger(TracerHook.class);
     private HashMap allInfo = new HashMap();
 
+    public void getBoltAckInfo(BoltAckInfo info){
+        allInfo.put("ackingTaskID", info.ackingTaskId);
+        allInfo.put("processLatencyMs", info.processLatencyMs);
+    }
+    public void getBoltFailInfo(BoltFailInfo info){
+        allInfo.put("failingTaskID", info.failingTaskId);
+        allInfo.put("failLatencyMs", info.failLatencyMs);
+    }
+
     public void getBasicBoltExecuteInfo(BoltExecuteInfo info){
         allInfo.put("tuple", info.tuple);
         allInfo.put("trace", info.tuple.getValueByField("_trace"));
+        allInfo.put("executeLatencyMs", info.executeLatencyMs);
         HashMap trace = (HashMap) allInfo.get("trace");
         allInfo.put("traceID", trace.get("traceID"));
-        allInfo.put("traceTrail", trace.get("traceTrail"));
+        allInfo.put("traceMessage", trace.get("traceMessage"));
     }
 
     public void getBoltExecuteInfo(BoltExecuteInfo info){
@@ -61,8 +69,8 @@ public class TracerHook extends BaseTaskHook {
             }
     }
 
-    public String messageMake(Vector<String> allInfoKeys, String component){
-        String logString = "from step: " + component + ": ";
+    public String messageMake(Vector<String> allInfoKeys, String component, String step){
+        String logString = "from " + step + " step of componentID: " + component + ": ";
         Iterator it = allInfo.keySet().iterator();
         while(it.hasNext()) {
             String key = (String) it.next();
@@ -71,40 +79,21 @@ public class TracerHook extends BaseTaskHook {
                 logString = logString.concat(key + ": " + val + "\t");
             }
         }
+        logString.concat("\n");
         return logString;
     }
 
-    public void output(String logstring){
-        LOG.info(logstring);
+    public void output(String str){
+        LOG.info(str);
     }
 
-    public void updateTraceTrail(String component){
+    public void updateTraceTrail(String extendString){
         HashMap trace = (HashMap) allInfo.get("trace");
-        String traceTrail = (String) trace.get("traceTrail");
+        String traceMessage = (String) trace.get("traceMessage");
 
-        traceTrail = component + "(" + traceTrail + ")";
-        allInfo.put("traceTrail", traceTrail);
-        trace.put("traceTrail", traceTrail);
+        traceMessage = extendString + "(" + traceMessage + ")";
+        trace.put("traceMessage", traceMessage);
         allInfo.put("newTrace", trace);
-    }
-
-    public void updateEmitTraceTrail(String component, EmitInfo info){
-        updateTraceTrail((String) allInfo.get("componentID"));
-
-        Tuple tuple = (Tuple) allInfo.get("tuple");
-        Integer traceIndex = tuple.fieldIndex("_trace");
-
-        output("from updateEmitTraceTrail in component= " + allInfo.get("componentID") + " info.values at traceIndex = "
-                + traceIndex + " is: " + info.values.get(traceIndex) + " values are: " + info.values);
-        output("from component: " + component+ " traceInfoIndex: " + traceIndex +
-                " and info.value.size() " + info.values.size() + " and tuple.size() " + tuple.size() +
-                " values are: " + info.values);
-
-
-
-//        info.values.remove(traceIndex);
-//        info.values.add(traceIndex, allInfo.get("newTrace"));
-
     }
 
     @Override
@@ -116,7 +105,7 @@ public class TracerHook extends BaseTaskHook {
         elements.add("outputFields");
         elements.add("targets");
         elements.add("streams");
-        output(messageMake(elements, allInfo.get("componentID") + ": prepare"));
+        output(messageMake(elements, (String) allInfo.get("componentID"), "prepare"));
 
     }
 
@@ -124,26 +113,53 @@ public class TracerHook extends BaseTaskHook {
         //May duplicate trail names, not sure
         //__system streams don't have the same information because they don't have tuples for instance
         //so those records need to be skipped or handle differently
-        if (! allInfo.get("componentID").equals("spout") && allInfo.get("_trace") != null){
-//            output("from emit componentID: " + allInfo.get("componentID") + " values: " + allInfo.get("values") +
-//                    " trace: " + allInfo.get("trace"));
-//            output("from updateemitTraceTrail" + allInfo.keySet());
-            updateEmitTraceTrail((String) allInfo.get("componentID"), info);
+        if (! allInfo.get("componentID").equals("my_spout") && allInfo.get("_trace") != null){
+            Fields outputFields = (Fields) allInfo.get("outputFields");
+            Integer traceIndex = outputFields.fieldIndex("_trace");
+            info.values.add(traceIndex, allInfo.get("newTrace"));
+
             Vector elements = new Vector();
-            elements.add("traceID");
-            elements.add("traceTrail");
-            output(messageMake(elements, allInfo.get("componentID") + ": emit"));
+            elements.add("trace");
+            output(messageMake(elements, (String) allInfo.get("componentID"), "emit"));
+        }
+    }
+
+    @Override
+    public void boltAck(BoltAckInfo info) {
+//        allInfo.remove("newTrace");
+        if (! allInfo.get("componentID").equals("my_spout") && allInfo.get("_trace") != null){
+            getBoltAckInfo(info);
+
+            Vector elements = new Vector();
+            elements.add("ackingTaskID");
+            elements.add("processLatencyMs");
+            output(messageMake(elements, (String) allInfo.get("componentID"), "boltAck"));
+        }
+    }
+
+    @Override
+    public void boltFail(BoltFailInfo info) {
+        if (! allInfo.get("componentID").equals("my_spout") && allInfo.get("_trace") != null){
+            getBoltFailInfo(info);
+
+            Vector elements = new Vector();
+            elements.add("failingTaskID");
+            elements.add("failLatencyMs");
+            output(messageMake(elements, (String) allInfo.get("componentID"), "boltFail"));
         }
     }
 
     public void boltExecute(BoltExecuteInfo info){
-            if (info.tuple.getValueByField("_trace") != null && !allInfo.get("componentID").equals("spout")){
+            if (info.tuple.getValueByField("_trace") != null && !allInfo.get("componentID").equals("my_spout")){
                 getBoltExecuteInfo(info);
+//                updateTraceTrail((String) allInfo.get("componentID"));
+
                 Vector elements = new Vector();
+                elements.add("executeLatencyMs");
                 elements.add("traceID");
                 elements.add("fields");
                 elements.add("values");
-                output(messageMake(elements, allInfo.get("componentID") + ": boltExecute"));
+                output(messageMake(elements, (String) allInfo.get("componentID"), "boltExecute"));
             }
     }
 }
