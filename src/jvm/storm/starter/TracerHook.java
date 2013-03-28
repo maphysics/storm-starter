@@ -114,11 +114,11 @@ public class TracerHook extends BaseTaskHook {
         //__system streams don't have the same information because they don't have tuples for instance
         //so those records need to be skipped or handle differently
         if ((!allInfo.get("componentID").equals("my_spout")) && (allInfo.get("trace") != null)){
-            Fields outputFields = (Fields) allInfo.get("outputFields");
-            Integer traceIndex = outputFields.fieldIndex("_trace");
-
-
-            info.values.add(traceIndex, allInfo.get("newTrace"));
+//            Fields outputFields = (Fields) allInfo.get("outputFields");
+//            Integer traceIndex = outputFields.fieldIndex("_trace");
+//            output("componentID: " + allInfo.get("componentID") + " step: emit outputFields: " + outputFields + " values: " + info.values + " traceIndex: " + traceIndex);
+//
+//            info.values.add(traceIndex, allInfo.get("newTrace"));
 
             Vector elements = new Vector();
             elements.add("trace");
