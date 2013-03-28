@@ -116,7 +116,7 @@ public class TracerHook extends BaseTaskHook {
         if ((!allInfo.get("componentID").equals("my_spout")) && (allInfo.get("trace") != null)){
             Fields outputFields = (Fields) allInfo.get("outputFields");
             Integer traceIndex = outputFields.fieldIndex("_trace");
-            updateTraceTrail((String) allInfo.get("componentID"));
+
 
             info.values.add(traceIndex, allInfo.get("newTrace"));
 
@@ -154,7 +154,7 @@ public class TracerHook extends BaseTaskHook {
     public void boltExecute(BoltExecuteInfo info){
             if ((info.tuple.getValueByField("_trace") != null) && (!allInfo.get("componentID").equals("my_spout"))){
                 getBoltExecuteInfo(info);
-
+                updateTraceTrail((String) allInfo.get("componentID"));
 
                 Vector elements = new Vector();
                 elements.add("executeLatencyMs");
