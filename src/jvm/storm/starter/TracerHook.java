@@ -3,19 +3,11 @@ package storm.starter;
 import backtype.storm.hooks.BaseTaskHook;
 import backtype.storm.hooks.info.*;
 import backtype.storm.task.TopologyContext;
-import backtype.storm.generated.GlobalStreamId;
-import backtype.storm.generated.Grouping;
-import backtype.storm.tuple.Fields;
-import backtype.storm.generated.Bolt;
-import backtype.storm.tuple.Tuple;
-import backtype.storm.tuple.Values;
-import com.esotericsoftware.minlog.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Vector;
 
 /**
