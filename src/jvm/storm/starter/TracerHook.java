@@ -21,6 +21,8 @@ public class TracerHook extends BaseTaskHook {
 
     Logger LOG = LoggerFactory.getLogger(TracerHook.class);
     private HashMap allInfo = new HashMap();
+    private String traceField = "word";
+    private String traceValue = "cow";
 
     public void getBoltAckInfo(BoltAckInfo info){
         allInfo.put("ackingTaskID", info.ackingTaskId);
@@ -33,11 +35,14 @@ public class TracerHook extends BaseTaskHook {
 
     public void getBasicBoltExecuteInfo(BoltExecuteInfo info){
         allInfo.put("tuple", info.tuple);
-        allInfo.put("trace", info.tuple.getValueByField("_trace"));
+        if (info.tuple.contains(traceField) && info.tuple.getValueByField(traceField).equals(traceValue)){
+            allInfo.put("trace", traceValue);
+        }
+//        allInfo.put("trace", info.tuple.getValueByField("_trace"));
         allInfo.put("executeLatencyMs", info.executeLatencyMs);
-        HashMap trace = (HashMap) allInfo.get("trace");
-        allInfo.put("traceID", trace.get("traceID"));
-        allInfo.put("traceMessage", trace.get("traceMessage"));
+//        HashMap trace = (HashMap) allInfo.get("trace");
+//        allInfo.put("traceID", trace.get("traceID"));
+//        allInfo.put("traceMessage", trace.get("traceMessage"));
     }
 
     public void getBoltExecuteInfo(BoltExecuteInfo info){
@@ -47,18 +52,18 @@ public class TracerHook extends BaseTaskHook {
     }
 
     public void getPrepareInfo(java.util.Map conf, TopologyContext context, String streamName){
-            allInfo.put("componentID", context.getThisComponentId());
-            if (allInfo.get("componentID") != "__acker"){
-                allInfo.put("streams", context.getThisStreams());
-                allInfo.put("sources", context.getThisSources());
-                allInfo.put("outputFields", context.getThisOutputFields(streamName));
-                allInfo.put("targets", context.getThisTargets());
-            }
-            else{
-                allInfo.put("sources", "from __acker");
-                allInfo.put("outputfields", "from __acker");
-                allInfo.put("targets", "from __acker");
-            }
+        allInfo.put("componentID", context.getThisComponentId());
+        if (!allInfo.get("componentID").equals("__acker")){
+            allInfo.put("streams", context.getThisStreams());
+            allInfo.put("sources", context.getThisSources());
+//                allInfo.put("outputFields", context.getThisOutputFields(streamName));
+            allInfo.put("targets", context.getThisTargets());
+        }
+        else{
+            allInfo.put("sources", "from __acker");
+            allInfo.put("outputfields", "from __acker");
+            allInfo.put("targets", "from __acker");
+        }
     }
 
     public String messageMake(Vector<String> allInfoKeys, String component, String step){
@@ -144,16 +149,16 @@ public class TracerHook extends BaseTaskHook {
     }
 
     public void boltExecute(BoltExecuteInfo info){
-            if ((info.tuple.getValueByField("_trace") != null) && (!allInfo.get("componentID").equals("my_spout"))){
-                getBoltExecuteInfo(info);
-                updateTraceTrail((String) allInfo.get("componentID"));
+        if ((info.tuple.contains(traceField)) && (info.tuple.getValueByField(traceField).equals(traceValue)) && (!allInfo.get("componentID").equals("my_spout"))){
+            getBoltExecuteInfo(info);
+//            updateTraceTrail((String) allInfo.get("componentID"));
 
-                Vector elements = new Vector();
-                elements.add("executeLatencyMs");
-                elements.add("traceID");
-                elements.add("fields");
-                elements.add("values");
-                output(messageMake(elements, (String) allInfo.get("componentID"), "boltExecute"));
-            }
+            Vector elements = new Vector();
+            elements.add("executeLatencyMs");
+//                elements.add("traceID");
+            elements.add("fields");
+            elements.add("values");
+            output(messageMake(elements, (String) allInfo.get("componentID"), "boltExecute"));
+        }
     }
 }
