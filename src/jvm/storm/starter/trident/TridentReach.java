@@ -6,7 +6,7 @@ import backtype.storm.LocalDRPC;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
 import backtype.storm.generated.StormTopology;
-import backtype.storm.task.IMetricsContext;
+//import backtype.storm.task.IMetricsContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -51,7 +51,7 @@ public class TridentReach {
             }
 
             @Override
-            public State makeState(Map conf, IMetricsContext metrics, int partitionIndex, int numPartitions) {
+            public State makeState(Map conf, int partitionIndex, int numPartitions) {
                 return new StaticSingleKeyMapState(_map);
             }
 
